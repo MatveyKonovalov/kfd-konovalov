@@ -3,12 +3,12 @@ name: CI Display Name
 on: # тригер
   push:
     branches: [way_a]
-jobs:
+jobs: # задачи
   build_and_tests_display_name:
     runs-on: ubuntu-latest
 
     steps:
       - name: build code
-        uses: ./gradlew assemble
+        run: ./gradlew assemble
       - name: test func
-        uses: ./gradlew test --rerun-tasks
+        run: ./gradlew test --rerun-tasks
