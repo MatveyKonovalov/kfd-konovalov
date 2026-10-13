@@ -11,7 +11,7 @@ import java.time.LocalDate
 
 object Parser {
     private const val AMOUNT_FIELDS = 5
-    private val fieldsTitle = listOf("date", "type", "topic", "location", "teacher")
+    private val fieldsTitle = listOf("date", "type", "topic", "location", "teachers")
 
     fun getSessionFromString(line: String): State {
         if (checkContainDelimiter(line) != null) return State.IncorrectDelimiter
@@ -21,9 +21,6 @@ object Parser {
         val fieldException = checkAmountFields(fields)
         if (fieldException != null) return fieldException
 
-        val fieldStartOrEnd = checkOutsideEnters(fields)
-        if (fieldStartOrEnd != null) return fieldStartOrEnd
-
         val fieldEmptyException = checkNotBlancFields(fields)
         if (fieldEmptyException != null) return fieldEmptyException
 
@@ -32,6 +29,12 @@ object Parser {
 
         val sessionTypeException = checkSessionType(fields[1])
         if (sessionTypeException != null) return sessionTypeException
+
+        val examCheck = checkTeacherNameWhenSubmitting(fields[1], fields[4])
+        if (examCheck != null) return examCheck
+
+        val fieldStartOrEnd = checkOutsideEnters(fields)
+        if (fieldStartOrEnd != null) return fieldStartOrEnd
 
         try {
             val session = getSessionByString(fields)
@@ -44,12 +47,11 @@ object Parser {
                     type = fields[1]
                 )
 
-                is SessionException.IncorrectControlTab -> {
-                    val fieldInd = fields.indexOf(e.value)
-                    State.IncorrectControlTab(field = fieldsTitle[fieldInd])
-                }
+                is SessionException.IncorrectControlTab ->
+                    State.IncorrectControlTab(field = fieldWithInvalidValue(fields, e.value))
 
-                is SessionException.IncorrectOutsideTab -> State.IncorrectStartOrEndWithTab(e.value)
+                is SessionException.IncorrectOutsideTab ->
+                    State.IncorrectStartOrEndWithTab(field = fieldWithInvalidValue(fields, e.value))
                 is SessionException.IncorrectFieldsCancellation -> State.IncorrectFieldsInCANCELED(e.field)
                 is SessionException.IncorrectPlace -> State.IncorrectPlace(e.value)
                 is SessionException.IncorrectTeacherName -> State.IncorrectTeacherName(e.name)
@@ -60,6 +62,12 @@ object Parser {
             }
         }
 
+    }
+
+    private fun fieldWithInvalidValue(fields: List<String>, value: String): String = when {
+        fields[2] == value -> fieldsTitle[2]
+        fields[3] == value -> fieldsTitle[3]
+        else -> fieldsTitle[4]
     }
 
     private fun checkContainDelimiter(line: String): State.IncorrectDelimiter? {
@@ -73,7 +81,7 @@ object Parser {
 
     fun checkOutsideEnters(fields: List<String>): State.IncorrectStartOrEndWithTab? {
         fields.forEachIndexed { index, field ->
-            if (field.startsWith(" ") || field.startsWith(" ")) {
+            if (field.startsWith(" ") || field.endsWith(" ")) {
                 return State.IncorrectStartOrEndWithTab(fieldsTitle[index])
             }
         }
@@ -113,6 +121,20 @@ object Parser {
         val sessionType = listOf("LECTURE", "PRACTICE", "EXAM", "CANCELLED")
         if (type !in sessionType) return State.IncorrectSessionType(type)
         return null
+    }
+
+    private fun checkTeacherNameWhenSubmitting(type: String, teachers: String): State.IncorrectAmountTeachers? {
+        var amount = 0
+        if (type == "EXAM") {
+            teachers.split(",").forEach { teacher ->
+                if (teacher.isNotBlank() && teacher != "-") {
+                    amount++
+                }
+            }
+            return if (amount < 2) State.IncorrectAmountTeachers(amount, 2, type) else null
+        } else {
+            return null
+        }
     }
 
     private fun getSessionByString(fields: List<String>): Session {
@@ -183,7 +205,7 @@ object ParserErrorMessage {
             when {
                 char == '\\' -> append("\\\\")
                 char == '"' -> append("\\\"")
-                char.code !in 41..176 && char != ' ' -> {
+                char.isISOControl() || char.code > 126 -> {
                     append("\\u")
                     append(char.code.toString(16).uppercase().padStart(4, '0'))
                 }
@@ -193,5 +215,3 @@ object ParserErrorMessage {
         }
     }
 }
-
-

@@ -71,7 +71,7 @@ class ParserTest {
     fun `incorrect teacher names EXAM`() {
         val line = "2026-01-05|EXAM|Classes and delegation|Room 312|Portnov,-"
         assertEquals(
-            State.IncorrectTeacherName("-"),
+            State.IncorrectAmountTeachers(1, 2, "EXAM"),
             Parser.getSessionFromString(line)
         )
     }
@@ -79,7 +79,7 @@ class ParserTest {
     // 7
     @Test
     fun `check controls chars`() {
-        val line = "2026-01-05|LECTURE|Classes and \u1111delegation|Room 312|Portnov"
+        val line = "2026-01-05|LECTURE|Classes and \tdelegation|Room 312|Portnov"
         val result = Parser.getSessionFromString(line)
         if (result is State.Result) {
             println(result.session.topic)
@@ -92,13 +92,55 @@ class ParserTest {
     }
 
     @Test
+    fun `control char in one of several teachers does not crash`() {
+        val line = "2026-01-05|LECTURE|Classes and delegation|Room 312|Iva\tnov,Petrov"
+        assertEquals(
+            State.IncorrectControlTab("teachers"),
+            Parser.getSessionFromString(line)
+        )
+    }
+
+    @Test
+    fun `control char in location`() {
+        val line = "2026-01-05|LECTURE|Classes and delegation|Room\t312|Portnov"
+        assertEquals(
+            State.IncorrectControlTab("location"),
+            Parser.getSessionFromString(line)
+        )
+    }
+
+    @Test
     fun `check outside enters`() {
-        val incorrectLine = "2026-10-05| LECTURE|Classes and delegation|Room 312|Portnov"
+        val incorrectLine = "2026-10-05|LECTURE| Classes and delegation|Room 312|Portnov"
 
         assertEquals(
-            State.IncorrectStartOrEndWithTab("type"),
+            State.IncorrectStartOrEndWithTab("topic"),
             Parser.getSessionFromString(incorrectLine)
         )
+    }
+
+    @Test
+    fun `padded type is unknown type, not outer whitespace`() {
+        val line = "2026-10-05| LECTURE|Classes and delegation|Room 312|Portnov"
+        assertEquals(State.IncorrectSessionType(" LECTURE"), Parser.getSessionFromString(line))
+    }
+
+    @Test
+    fun `padded date is invalid date, not outer whitespace`() {
+        val line = " 2026-10-05|LECTURE|Classes and delegation|Room 312|Portnov"
+        assertEquals(State.IncorrectDataFormat(" 2026-10-05"), Parser.getSessionFromString(line))
+    }
+
+    @Test
+    fun `blank topic is empty field, not outer whitespace`() {
+        val line = "2026-10-05|LECTURE|   |Room 312|Portnov"
+        assertEquals(State.IncorrectEmptyField("topic"), Parser.getSessionFromString(line))
+    }
+
+    @Test
+    fun `outer whitespace in one of several teachers names the field`() {
+        val line = "2026-10-05|LECTURE|Classes and delegation|Room 312|Ivanov, Petrov"
+        assertEquals(State.IncorrectStartOrEndWithTab("teachers"), Parser.getSessionFromString(line))
     }
 
     @Test

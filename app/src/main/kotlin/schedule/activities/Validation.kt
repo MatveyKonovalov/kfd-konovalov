@@ -20,14 +20,14 @@ fun checkCancellation(date: LocalDate, topic: String) {
 
 
 private fun checkOuterTabsAndControlTabs(value: String) {
-    if (value.startsWith("\t") || value.endsWith("\t")) {
+    if (value.startsWith(" ") || value.endsWith(" ")) {
         throw SessionException.IncorrectOutsideTab(
             "The string must be not start with tab or end with tab",
             value
         )
     }
 
-    if (value.any { it.code !in 41..176 && it != ' ' }) {
+    if (value.any { it.isISOControl()}) {
         throw SessionException.IncorrectControlTab(
             message = "The string must be not contains controls chars",
             value = value
