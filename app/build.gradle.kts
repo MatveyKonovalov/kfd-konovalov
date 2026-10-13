@@ -4,7 +4,7 @@ plugins {
 }
 
 kotlin {
-    jvmToolchain(25)
+    jvmToolchain(21)
     compilerOptions { allWarningsAsErrors.set(true) }
 }
 
@@ -22,7 +22,7 @@ application {
 
 tasks.named<JavaExec>("run") {
     javaLauncher = javaToolchains.launcherFor {
-        languageVersion = JavaLanguageVersion.of(25)
+        languageVersion = JavaLanguageVersion.of(21)
     }
     workingDir = rootProject.projectDir
 }

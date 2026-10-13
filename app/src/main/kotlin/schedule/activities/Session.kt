@@ -1,7 +1,7 @@
 package schedule.activities
 import java.time.LocalDate
 
-interface Session {
+sealed interface Session {
     val date: LocalDate
     val topic: String
 }

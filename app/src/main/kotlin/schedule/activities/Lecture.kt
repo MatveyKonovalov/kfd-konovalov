@@ -1,17 +1,15 @@
-package schedule.activities.impl
+package schedule.activities
 
-import schedule.activities.Session
-import schedule.activities.checkSimpleSession
 import java.time.LocalDate
 
-class Submitting(
+class Lecture(
     override val date: LocalDate,
     override val topic: String,
     val place: String,
     teachers: List<String>
 ) : Session {
     companion object {
-        private const val MIN_TEACHERS_AMOUNT = 2
+        private const val MIN_TEACHERS_AMOUNT = 1
     }
 
     init {
@@ -19,5 +17,4 @@ class Submitting(
     }
 
     val teachers: List<String> = teachers.toList()
-
 }

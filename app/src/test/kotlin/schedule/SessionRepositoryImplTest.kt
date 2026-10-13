@@ -3,8 +3,8 @@ package schedule
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import schedule.activities.Session
-import schedule.activities.impl.Cancellation
-import schedule.activities.impl.Lecture
+import schedule.activities.Cancellation
+import schedule.activities.Lecture
 import schedule.repositories.SessionRepository
 import schedule.repositories.SessionRepositoryImpl
 import java.time.LocalDate

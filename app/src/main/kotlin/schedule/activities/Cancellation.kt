@@ -1,7 +1,5 @@
-package schedule.activities.impl
+package schedule.activities
 
-import schedule.activities.Session
-import schedule.activities.checkCancellation
 import java.time.LocalDate
 
 class Cancellation(

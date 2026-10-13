@@ -1,10 +1,8 @@
-package schedule.activities.impl
+package schedule.activities
 
-import schedule.activities.Session
-import schedule.activities.checkSimpleSession
 import java.time.LocalDate
 
-class Lecture(
+class Practise(
     override val date: LocalDate,
     override val topic: String,
     val place: String,

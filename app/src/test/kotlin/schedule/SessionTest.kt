@@ -2,10 +2,10 @@ package schedule
 
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
-import schedule.activities.impl.Cancellation
-import schedule.activities.impl.Lecture
-import schedule.activities.impl.Practise
-import schedule.activities.impl.Submitting
+import schedule.activities.Cancellation
+import schedule.activities.Lecture
+import schedule.activities.Practise
+import schedule.activities.Submitting
 import java.time.LocalDate
 import kotlin.test.assertEquals
 
@@ -286,7 +286,7 @@ class SessionTest {
     fun `check lecture when i change list which is given`() {
         val session =
             Lecture(date = correctDate, topic = correctTopic, place = correctPlace, teachers = correctListTeacher)
-        val given = session.teachers.toMutableList()
+        val given: MutableList<String> = session.teachers.toMutableList()
         given.add("Nick")
         assertEquals(2, session.teachers.size)
     }

@@ -6,13 +6,13 @@ class AuditedSessionRepository(private val delegate: SessionRepository) : Sessio
     private val logs: MutableList<LogInSession> = mutableListOf()
 
     override fun add(session: Session) {
-        logs.add(LogInSession(Operation.ADD, 1))
         delegate.add(session)
+        logs.add(LogInSession(Operation.ADD, 1))
     }
 
     override fun addAll(sessions: List<Session>) {
-        logs.add(LogInSession(Operation.ADD_ALL, sessions.size))
         delegate.addAll(sessions)
+        logs.add(LogInSession(Operation.ADD_ALL, sessions.size))
     }
 
     fun getLogsInfo(): Map<String, Int>{
@@ -24,7 +24,7 @@ class AuditedSessionRepository(private val delegate: SessionRepository) : Sessio
             if (log.operation in listOf(Operation.ADD, Operation.ADD_ALL)){
                 added += log.amount
             }
-            sessions = log.amount
+            sessions += log.amount
         }
 
         return mapOf("sessions" to sessions, "added" to added, "audit events" to auditEvents)

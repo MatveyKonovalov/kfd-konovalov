@@ -2,8 +2,8 @@ package schedule
 
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import schedule.activities.impl.Lecture
-import schedule.activities.impl.Practise
+import schedule.activities.Lecture
+import schedule.activities.Practise
 import schedule.repositories.AuditedSessionRepository
 import schedule.repositories.SessionRepositoryImpl
 import java.time.LocalDate
