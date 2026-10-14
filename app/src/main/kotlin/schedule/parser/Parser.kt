@@ -14,7 +14,7 @@ object Parser {
     private val fieldsTitle = listOf("date", "type", "topic", "location", "teachers")
 
     fun getSessionFromString(line: String): State {
-        if (checkContainDelimiter(line) != null) return State.IncorrectDelimiter
+        if (checkContainDelimiter(line) != null) return State.ErrorState.IncorrectDelimiter
 
         val fields = line.split("|")
 
@@ -41,24 +41,24 @@ object Parser {
             return State.Result(session)
         } catch (e: SessionException) {
             return when (e) {
-                is SessionException.IncorrectTeacherAmount -> State.IncorrectAmountTeachers(
+                is SessionException.IncorrectTeacherAmount -> State.ErrorState.IncorrectAmountTeachers(
                     amountTeachers = e.currentAmount,
                     expected = e.expectAmount,
                     type = fields[1]
                 )
 
                 is SessionException.IncorrectControlTab ->
-                    State.IncorrectControlTab(field = fieldWithInvalidValue(fields, e.value))
+                    State.ErrorState.IncorrectControlTab(field = fieldWithInvalidValue(fields, e.value))
 
                 is SessionException.IncorrectOutsideTab ->
-                    State.IncorrectStartOrEndWithTab(field = fieldWithInvalidValue(fields, e.value))
-                is SessionException.IncorrectFieldsCancellation -> State.IncorrectFieldsInCANCELED(e.field)
-                is SessionException.IncorrectPlace -> State.IncorrectPlace(e.value)
-                is SessionException.IncorrectTeacherName -> State.IncorrectTeacherName(e.name)
-                is SessionException.IncorrectUniqueTeachers -> State.IncorrectUniqueTeachers(e.incorrectName)
+                    State.ErrorState.IncorrectStartOrEndWithTab(field = fieldWithInvalidValue(fields, e.value))
+                is SessionException.IncorrectFieldsCancellation -> State.ErrorState.IncorrectFieldsInCANCELED(e.field)
+                is SessionException.IncorrectPlace -> State.ErrorState.IncorrectPlace(e.value)
+                is SessionException.IncorrectTeacherName -> State.ErrorState.IncorrectTeacherName(e.name)
+                is SessionException.IncorrectUniqueTeachers -> State.ErrorState.IncorrectUniqueTeachers(e.incorrectName)
 
-                is SessionException.IncorrectDate -> State.IncorrectDataFormat(e.message)
-                is SessionException.IncorrectTopic -> State.AnotherException(e.message)
+                is SessionException.IncorrectDate -> State.ErrorState.IncorrectDataFormat(e.message)
+                is SessionException.IncorrectTopic -> State.ErrorState.AnotherException(e.message)
             }
         }
 
@@ -70,45 +70,45 @@ object Parser {
         else -> fieldsTitle[4]
     }
 
-    private fun checkContainDelimiter(line: String): State.IncorrectDelimiter? {
-        return if (!line.contains("|")) State.IncorrectDelimiter else null
+    private fun checkContainDelimiter(line: String): State.ErrorState.IncorrectDelimiter? {
+        return if (!line.contains("|")) State.ErrorState.IncorrectDelimiter else null
     }
 
-    private fun checkAmountFields(fields: List<String>): State.IncorrectAmountFields? {
-        if (fields.size != AMOUNT_FIELDS) return State.IncorrectAmountFields(fields.size)
+    private fun checkAmountFields(fields: List<String>): State.ErrorState.IncorrectAmountFields? {
+        if (fields.size != AMOUNT_FIELDS) return State.ErrorState.IncorrectAmountFields(fields.size)
         return null
     }
 
-    fun checkOutsideEnters(fields: List<String>): State.IncorrectStartOrEndWithTab? {
+    fun checkOutsideEnters(fields: List<String>): State.ErrorState.IncorrectStartOrEndWithTab? {
         fields.forEachIndexed { index, field ->
             if (field.startsWith(" ") || field.endsWith(" ")) {
-                return State.IncorrectStartOrEndWithTab(fieldsTitle[index])
+                return State.ErrorState.IncorrectStartOrEndWithTab(fieldsTitle[index])
             }
         }
         return null
     }
 
-    private fun checkNotBlancFields(fields: List<String>): State.IncorrectEmptyField? {
+    private fun checkNotBlancFields(fields: List<String>): State.ErrorState.IncorrectEmptyField? {
 
         fields.forEachIndexed { index, field ->
             if (field.isEmpty() || field.isBlank()) {
-                return State.IncorrectEmptyField(fieldsTitle[index])
+                return State.ErrorState.IncorrectEmptyField(fieldsTitle[index])
             }
         }
         return null
     }
 
-    private fun checkDate(date: String): State.IncorrectDataFormat? {
+    private fun checkDate(date: String): State.ErrorState.IncorrectDataFormat? {
         val regex = "[0-9]{4}-[0-9]{2}-[0-9]{2}".toRegex()
-        if (!date.matches(regex)) return State.IncorrectDataFormat(date)
+        if (!date.matches(regex)) return State.ErrorState.IncorrectDataFormat(date)
 
         try {
             val dateD = parseDateString(date)
-            if (dateD.year !in 1..9999) return State.IncorrectDataFormat(date)
+            if (dateD.year !in 1..9999) return State.ErrorState.IncorrectDataFormat(date)
 
             return null
         } catch (e: Exception) {
-            return State.IncorrectDataFormat(date)
+            return State.ErrorState.IncorrectDataFormat(date)
         }
     }
 
@@ -117,13 +117,13 @@ object Parser {
         return LocalDate.of(year, month, day)
     }
 
-    private fun checkSessionType(type: String): State.IncorrectSessionType? {
+    private fun checkSessionType(type: String): State.ErrorState.IncorrectSessionType? {
         val sessionType = listOf("LECTURE", "PRACTICE", "EXAM", "CANCELLED")
-        if (type !in sessionType) return State.IncorrectSessionType(type)
+        if (type !in sessionType) return State.ErrorState.IncorrectSessionType(type)
         return null
     }
 
-    private fun checkTeacherNameWhenSubmitting(type: String, teachers: String): State.IncorrectAmountTeachers? {
+    private fun checkTeacherNameWhenSubmitting(type: String, teachers: String): State.ErrorState.IncorrectAmountTeachers? {
         var amount = 0
         if (type == "EXAM") {
             teachers.split(",").forEach { teacher ->
@@ -131,7 +131,7 @@ object Parser {
                     amount++
                 }
             }
-            return if (amount < 2) State.IncorrectAmountTeachers(amount, 2, type) else null
+            return if (amount < 2) State.ErrorState.IncorrectAmountTeachers(amount, 2, type) else null
         } else {
             return null
         }
@@ -177,24 +177,24 @@ object Parser {
 }
 
 object ParserErrorMessage {
-    fun printMessage(error: ErrorState, fileNum: Long) {
+    fun printMessage(error: State.ErrorState, fileNum: Long) {
         println(
             "line $fileNum: " + when (error) {
-                is State.IncorrectDelimiter -> "invalid field separator"
-                is State.AnotherException -> error.message
-                is State.IncorrectAmountFields -> "got ${error.curAmount} fields, expected 5"
-                is State.IncorrectAmountTeachers ->
+                is State.ErrorState.IncorrectDelimiter -> "invalid field separator"
+                is State.ErrorState.AnotherException -> error.message
+                is State.ErrorState.IncorrectAmountFields -> "got ${error.curAmount} fields, expected 5"
+                is State.ErrorState.IncorrectAmountTeachers ->
                     "type \"${error.type}\" requires at least ${error.expected} teachers, got ${error.amountTeachers}"
 
-                is State.IncorrectControlTab -> "control character in field \"${error.field}\""
-                is State.IncorrectDataFormat -> "invalid date \"${formatMessage(error.date)}\""
-                is State.IncorrectEmptyField -> "empty required field \"${error.field}\""
-                is State.IncorrectFieldsInCANCELED -> "cancelled session field \"${error.field}\" must be \"-\""
-                is State.IncorrectPlace -> "invalid location \"${formatMessage(error.value)}\""
-                is State.IncorrectSessionType -> "unknown session type \"${formatMessage(error.type)}\""
-                is State.IncorrectStartOrEndWithTab -> "outer whitespace in field \"${error.field}\""
-                is State.IncorrectTeacherName -> "invalid teacher \"${formatMessage(error.name)}\""
-                is State.IncorrectUniqueTeachers -> "duplicate teacher \"${formatMessage(error.name)}\""
+                is State.ErrorState.IncorrectControlTab -> "control character in field \"${error.field}\""
+                is State.ErrorState.IncorrectDataFormat -> "invalid date \"${formatMessage(error.date)}\""
+                is State.ErrorState.IncorrectEmptyField -> "empty required field \"${error.field}\""
+                is State.ErrorState.IncorrectFieldsInCANCELED -> "cancelled session field \"${error.field}\" must be \"-\""
+                is State.ErrorState.IncorrectPlace -> "invalid location \"${formatMessage(error.value)}\""
+                is State.ErrorState.IncorrectSessionType -> "unknown session type \"${formatMessage(error.type)}\""
+                is State.ErrorState.IncorrectStartOrEndWithTab -> "outer whitespace in field \"${error.field}\""
+                is State.ErrorState.IncorrectTeacherName -> "invalid teacher \"${formatMessage(error.name)}\""
+                is State.ErrorState.IncorrectUniqueTeachers -> "duplicate teacher \"${formatMessage(error.name)}\""
             }
         )
 

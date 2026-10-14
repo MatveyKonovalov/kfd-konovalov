@@ -11,7 +11,7 @@ class ParserTest {
     fun `check incorrect delimiter`() {
         val incorrectLine = "2026-10-05&LECTURE&Classes and delegation&Room 312&Portnov"
         assertEquals(
-            State.IncorrectDelimiter,
+            State.ErrorState.IncorrectDelimiter,
             Parser.getSessionFromString(line = incorrectLine)
         )
     }
@@ -22,7 +22,7 @@ class ParserTest {
         val incorrectLine = "2026-10-05|Classes and delegation|Room 312|Portnov"
         val curAmount = 4
         assertEquals(
-            State.IncorrectAmountFields(curAmount),
+            State.ErrorState.IncorrectAmountFields(curAmount),
             Parser.getSessionFromString(incorrectLine)
         )
     }
@@ -32,7 +32,7 @@ class ParserTest {
     fun `check empty field`() {
         val line = "2026-10-05||Classes and delegation|Room 312|Portnov"
         assertEquals(
-            State.IncorrectEmptyField("type"),
+            State.ErrorState.IncorrectEmptyField("type"),
             Parser.getSessionFromString(line)
         )
     }
@@ -41,20 +41,20 @@ class ParserTest {
     @Test
     fun `check date format`() {
         val line = "2026-99-05|LECTURE|Classes and delegation|Room 312|Portnov"
-        assertEquals(State.IncorrectDataFormat("2026-99-05"), Parser.getSessionFromString(line))
+        assertEquals(State.ErrorState.IncorrectDataFormat("2026-99-05"), Parser.getSessionFromString(line))
     }
 
     @Test
     fun `check date value`() {
         val line = "0000-01-05|LECTURE|Classes and delegation|Room 312|Portnov"
-        assertEquals(State.IncorrectDataFormat("0000-01-05"), Parser.getSessionFromString(line))
+        assertEquals(State.ErrorState.IncorrectDataFormat("0000-01-05"), Parser.getSessionFromString(line))
     }
 
     // 5
     @Test
     fun `incorrect type`() {
         val line = "2026-01-05|LECTUR|Classes and delegation|Room 312|Portnov"
-        assertEquals(State.IncorrectSessionType("LECTUR"), Parser.getSessionFromString(line))
+        assertEquals(State.ErrorState.IncorrectSessionType("LECTUR"), Parser.getSessionFromString(line))
     }
 
     // 6
@@ -62,7 +62,7 @@ class ParserTest {
     fun `incorrect amount teachers EXAM`() {
         val line = "2026-01-05|EXAM|Classes and delegation|Room 312|Portnov"
         assertEquals(
-            State.IncorrectAmountTeachers(1, 2, "EXAM"),
+            State.ErrorState.IncorrectAmountTeachers(1, 2, "EXAM"),
             Parser.getSessionFromString(line)
         )
     }
@@ -71,7 +71,7 @@ class ParserTest {
     fun `incorrect teacher names EXAM`() {
         val line = "2026-01-05|EXAM|Classes and delegation|Room 312|Portnov,-"
         assertEquals(
-            State.IncorrectAmountTeachers(1, 2, "EXAM"),
+            State.ErrorState.IncorrectAmountTeachers(1, 2, "EXAM"),
             Parser.getSessionFromString(line)
         )
     }
@@ -85,7 +85,7 @@ class ParserTest {
             println(result.session.topic)
         }
         assertEquals(
-            State.IncorrectControlTab("topic"),
+            State.ErrorState.IncorrectControlTab("topic"),
             result
         )
 
@@ -95,7 +95,7 @@ class ParserTest {
     fun `control char in one of several teachers does not crash`() {
         val line = "2026-01-05|LECTURE|Classes and delegation|Room 312|Iva\tnov,Petrov"
         assertEquals(
-            State.IncorrectControlTab("teachers"),
+            State.ErrorState.IncorrectControlTab("teachers"),
             Parser.getSessionFromString(line)
         )
     }
@@ -104,7 +104,7 @@ class ParserTest {
     fun `control char in location`() {
         val line = "2026-01-05|LECTURE|Classes and delegation|Room\t312|Portnov"
         assertEquals(
-            State.IncorrectControlTab("location"),
+            State.ErrorState.IncorrectControlTab("location"),
             Parser.getSessionFromString(line)
         )
     }
@@ -114,7 +114,7 @@ class ParserTest {
         val incorrectLine = "2026-10-05|LECTURE| Classes and delegation|Room 312|Portnov"
 
         assertEquals(
-            State.IncorrectStartOrEndWithTab("topic"),
+            State.ErrorState.IncorrectStartOrEndWithTab("topic"),
             Parser.getSessionFromString(incorrectLine)
         )
     }
@@ -122,25 +122,25 @@ class ParserTest {
     @Test
     fun `padded type is unknown type, not outer whitespace`() {
         val line = "2026-10-05| LECTURE|Classes and delegation|Room 312|Portnov"
-        assertEquals(State.IncorrectSessionType(" LECTURE"), Parser.getSessionFromString(line))
+        assertEquals(State.ErrorState.IncorrectSessionType(" LECTURE"), Parser.getSessionFromString(line))
     }
 
     @Test
     fun `padded date is invalid date, not outer whitespace`() {
         val line = " 2026-10-05|LECTURE|Classes and delegation|Room 312|Portnov"
-        assertEquals(State.IncorrectDataFormat(" 2026-10-05"), Parser.getSessionFromString(line))
+        assertEquals(State.ErrorState.IncorrectDataFormat(" 2026-10-05"), Parser.getSessionFromString(line))
     }
 
     @Test
     fun `blank topic is empty field, not outer whitespace`() {
         val line = "2026-10-05|LECTURE|   |Room 312|Portnov"
-        assertEquals(State.IncorrectEmptyField("topic"), Parser.getSessionFromString(line))
+        assertEquals(State.ErrorState.IncorrectEmptyField("topic"), Parser.getSessionFromString(line))
     }
 
     @Test
     fun `outer whitespace in one of several teachers names the field`() {
         val line = "2026-10-05|LECTURE|Classes and delegation|Room 312|Ivanov, Petrov"
-        assertEquals(State.IncorrectStartOrEndWithTab("teachers"), Parser.getSessionFromString(line))
+        assertEquals(State.ErrorState.IncorrectStartOrEndWithTab("teachers"), Parser.getSessionFromString(line))
     }
 
     @Test
@@ -148,7 +148,7 @@ class ParserTest {
         val incorrectLine = "2026-10-05|CANCELLED|Classes and delegation|?|?"
 
         assertEquals(
-            State.IncorrectFieldsInCANCELED("location"),
+            State.ErrorState.IncorrectFieldsInCANCELED("location"),
             Parser.getSessionFromString(incorrectLine)
         )
     }
@@ -157,7 +157,7 @@ class ParserTest {
     fun `incorrect elements in teacher list when teacher = -`() {
         val incorrectLine = "2026-10-05|LECTURE|Classes and delegation|MEPHI|Portnov,-"
         assertEquals(
-            State.IncorrectTeacherName("-"),
+            State.ErrorState.IncorrectTeacherName("-"),
             Parser.getSessionFromString(incorrectLine)
         )
     }
@@ -166,7 +166,7 @@ class ParserTest {
     fun `incorrect elements in teacher list when teacher = ''`() {
         val incorrectLine = "2026-10-05|LECTURE|Classes and delegation|MEPHI|Portnov,"
         assertEquals(
-            State.IncorrectTeacherName(""),
+            State.ErrorState.IncorrectTeacherName(""),
             Parser.getSessionFromString(incorrectLine)
         )
     }
@@ -175,7 +175,7 @@ class ParserTest {
     fun `repeated teachers error`() {
         val incorrectLine = "2026-10-05|LECTURE|Classes and delegation|MEPHI|Portnov,Portnov"
         assertEquals(
-            State.IncorrectUniqueTeachers("Portnov"),
+            State.ErrorState.IncorrectUniqueTeachers("Portnov"),
             Parser.getSessionFromString(incorrectLine)
         )
     }
@@ -185,7 +185,7 @@ class ParserTest {
     fun `incorrect delimiter and topic`() {
         val incorrectLine = "2026-10-05?LECTURE??MEPHI?Portnov"
         assertEquals(
-            State.IncorrectDelimiter,
+            State.ErrorState.IncorrectDelimiter,
             Parser.getSessionFromString(incorrectLine)
         )
     }
@@ -194,7 +194,7 @@ class ParserTest {
     fun `incorrect fields size and unknown session type`() {
         val incorrectLine = "2026-10-05|CHILLUXA|MEPHI|Portnov"
         assertEquals(
-            State.IncorrectAmountFields(4),
+            State.ErrorState.IncorrectAmountFields(4),
             Parser.getSessionFromString(incorrectLine)
         )
     }
@@ -203,7 +203,7 @@ class ParserTest {
     fun `incorrect empty field and unknown session type`() {
         val incorrectLine = "2026-10-05|CHILLUXA||MEPHI|Portnov"
         assertEquals(
-            State.IncorrectEmptyField("topic"),
+            State.ErrorState.IncorrectEmptyField("topic"),
             Parser.getSessionFromString(incorrectLine)
         )
     }
@@ -212,7 +212,7 @@ class ParserTest {
     fun `incorrect date format and unkmown session type`() {
         val incorrectLine = "2026-23-45|CHILLUXA|Hello|MEPHI|Portnov"
         assertEquals(
-            State.IncorrectDataFormat("2026-23-45"),
+            State.ErrorState.IncorrectDataFormat("2026-23-45"),
             Parser.getSessionFromString(incorrectLine)
         )
     }
@@ -220,7 +220,7 @@ class ParserTest {
     fun `incorrect date format and empty field`() {
         val incorrectLine = "2026-23-45||Hello|MEPHI|Portnov"
         assertEquals(
-            State.IncorrectEmptyField("type"),
+            State.ErrorState.IncorrectEmptyField("type"),
             Parser.getSessionFromString(incorrectLine)
         )
     }

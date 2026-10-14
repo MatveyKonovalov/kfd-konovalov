@@ -5,7 +5,6 @@ import schedule.activities.Lecture
 import schedule.activities.Practise
 import schedule.activities.Session
 import schedule.activities.Submitting
-import schedule.parser.ErrorState
 import schedule.parser.Parser
 import schedule.parser.ParserErrorMessage
 import schedule.parser.State
@@ -29,7 +28,7 @@ fun runPeriod(command: Command.Period): Int {
     forEachScheduleLine(command.file) { number, line ->
         val resultN = Parser.getSessionFromString(line)
 
-        if (resultN is ErrorState) {
+        if (resultN is State.ErrorState) {
             incorrect++
         } else if (resultN is State.Result) {
             if (resultN.session.date <= command.to && resultN.session.date >= command.from) {
@@ -53,7 +52,7 @@ fun runType(command: Command.ByType): Int {
                 println(formatSession(resultN.session, true))
                 correct++
             }
-        } else if (resultN is ErrorState){
+        } else if (resultN is State.ErrorState){
             incorrect++
         }
     }
@@ -67,7 +66,7 @@ fun runErrors(command: Command.Errors): Int {
     var size = 0
     forEachScheduleLine(command.file) { number, line ->
         val resultN = Parser.getSessionFromString(line)
-        if (resultN is ErrorState) {
+        if (resultN is State.ErrorState) {
             ParserErrorMessage.printMessage(resultN, number)
             incorrect++
         }
