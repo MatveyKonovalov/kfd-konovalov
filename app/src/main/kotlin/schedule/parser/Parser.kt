@@ -181,7 +181,7 @@ object ParserErrorMessage {
         println(
             "line $fileNum: " + when (error) {
                 is State.IncorrectDelimiter -> "invalid field separator"
-                is State.AnotherException -> "line $fileNum: ${error.message}"
+                is State.AnotherException -> error.message
                 is State.IncorrectAmountFields -> "got ${error.curAmount} fields, expected 5"
                 is State.IncorrectAmountTeachers ->
                     "type \"${error.type}\" requires at least ${error.expected} teachers, got ${error.amountTeachers}"
